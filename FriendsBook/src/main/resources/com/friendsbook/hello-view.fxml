@@ -26,8 +26,10 @@
     </HBox>
 
     <HBox spacing="10.0">
-        <Button text="Add Friend" onAction="#onAddFriendClick"/>
-        <Button text="Delete Selected" onAction="#onDeleteFriendClick"/>
+        <Button text="Add Friend" onAction="#onAddFriendClick" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        <Button text="Delete Selected" onAction="#onDeleteFriendClick" style="-fx-background-color: #f44336; -fx-text-fill: white;"/>
+        <Button text="Save List" onAction="#onSaveClick" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+        <Button text="Load List" onAction="#onLoadClick" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
     </HBox>
 
     <ListView fx:id="friendsListView" VBox.vgrow="ALWAYS"/>

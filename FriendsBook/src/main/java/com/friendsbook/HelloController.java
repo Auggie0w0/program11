@@ -5,6 +5,9 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import java.io.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class HelloController {
     @FXML private TextField nameField;
@@ -14,6 +17,12 @@ public class HelloController {
     @FXML private ListView<Friend> friendsListView;
     @FXML private Label detailsLabel;
     @FXML private VBox friendDetailsPane;
+    private static final String FRIEND_DELIMITER = "|||";
+    
+    @FXML
+    private Button saveButton;
+    @FXML
+    private Button loadButton;
 
     private ObservableList<Friend> friendsList = FXCollections.observableArrayList();
 
@@ -22,6 +31,10 @@ public class HelloController {
         friendsListView.setItems(friendsList);
         friendsListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> showFriendDetails(newValue));
+        
+        // Add styling
+        friendDetailsPane.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 10;");
+        friendsListView.setStyle("-fx-background-color: #ffffff;");
     }
 
     //requires: nothing
@@ -97,5 +110,74 @@ public class HelloController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    @FXML
+    protected void onSaveClick() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Friends List");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        
+        File file = fileChooser.showSaveDialog(new Stage());
+        if (file != null) {
+            saveFriendsToFile(file);
+        }
+    }
+    
+    @FXML
+    protected void onLoadClick() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load Friends List");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        
+        File file = fileChooser.showOpenDialog(new Stage());
+        if (file != null) {
+            loadFriendsFromFile(file);
+        }
+    }
+    
+    //requires: file != null
+    //modifies: file system
+    //effects: saves all friends to the specified file
+    private void saveFriendsToFile(File file) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+            for (Friend friend : friendsList) {
+                writer.println(String.format("%s%s%d%s%s%s%s",
+                    friend.getName(), FRIEND_DELIMITER,
+                    friend.getAge(), FRIEND_DELIMITER,
+                    friend.getEmail(), FRIEND_DELIMITER,
+                    friend.getPhoneNumber()));
+            }
+        } catch (IOException e) {
+            showError("Error saving file: " + e.getMessage());
+        }
+    }
+    
+    //requires: file != null
+    //modifies: friendsList
+    //effects: loads friends from the specified file
+    private void loadFriendsFromFile(File file) {
+        friendsList.clear();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\" + FRIEND_DELIMITER);
+                if (parts.length == 4) {
+                    Friend friend = new Friend(
+                        parts[0],
+                        Integer.parseInt(parts[1]),
+                        parts[2],
+                        parts[3]
+                    );
+                    friendsList.add(friend);
+                }
+            }
+        } catch (IOException e) {
+            showError("Error loading file: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            showError("Error parsing age from file");
+        }
     }
 }
